@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 
 import sunkeding.com.aidlstudy.ISimpleAidlInterface;
+import sunkeding.com.aidlstudy.bean.StudentBean;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     int add = iSimpleAidlInterface.add(6, 3);
                     Log.d("MainActivity", "add:" + add);
+                    int i = iSimpleAidlInterface.addAge(new StudentBean());
+                    Log.d("MainActivity", "i:" + i);
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -48,8 +51,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void bindService() {
         Intent intent = new Intent();
-        //绑定服务端的包名和完整类名
-        intent.setComponent(new ComponentName("sunkeding.com.aidlstudy", "sunkeding.com.aidlstudy.IRemoteService"));
+        //绑定服务端App的包名和服务的完整类名（即服务的包名加类名）
+        intent.setComponent(new ComponentName("sunkeding.com.aidlstudy", "sunkeding.com.aidlstudy.service.IRemoteService"));
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
     }
 }
