@@ -1,5 +1,6 @@
 package sunkeding.com.aidlclient;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -10,11 +11,14 @@ import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
 import sunkeding.com.aidlstudy.ISimpleAidlInterface;
 import sunkeding.com.aidlstudy.bean.StudentBean;
+import sunkeding.com.broadcast.BroadcastManager;
 
 public class MainActivity extends AppCompatActivity {
+    private String BROADCAST_ACTION = "skd";
 
     private ISimpleAidlInterface iSimpleAidlInterface;
     private ServiceConnection conn = new ServiceConnection() {
@@ -28,11 +32,13 @@ public class MainActivity extends AppCompatActivity {
             iSimpleAidlInterface = null;
         }
     };
+    private Button btnLoginState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        btnLoginState = findViewById(R.id.btn_login_state);
         bindService();
         findViewById(R.id.bt1).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -47,6 +53,19 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+
+        BroadcastManager.getInstance(this).addAction(BROADCAST_ACTION, new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Bundle extras = intent.getExtras();
+                if (extras != null) {
+                    boolean isLogin = extras.getBoolean("isLogin");
+                    Log.d("MainActivity", "isLogin:" + isLogin);
+                    btnLoginState.setText("登录：" + isLogin);
+                }
+            }
+        });
     }
 
     private void bindService() {
@@ -54,5 +73,11 @@ public class MainActivity extends AppCompatActivity {
         //绑定服务端App的包名和服务的完整类名（即服务的包名加类名）
         intent.setComponent(new ComponentName("sunkeding.com.aidlstudy", "sunkeding.com.aidlstudy.service.IRemoteService"));
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        BroadcastManager.getInstance(this).destroy(BROADCAST_ACTION);
     }
 }
