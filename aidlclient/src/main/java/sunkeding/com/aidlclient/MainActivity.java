@@ -19,12 +19,29 @@ import sunkeding.com.broadcast.BroadcastManager;
 
 public class MainActivity extends AppCompatActivity {
     private String BROADCAST_ACTION = "skd";
-
+    //
+    private IBinder.DeathRecipient deathRecipient = new IBinder.DeathRecipient() {
+        @Override
+        public void binderDied() {
+            Log.d("MainActivity", "远程服务端挂了。。");
+            if (iSimpleAidlInterface == null) {
+                return;
+            }
+            iSimpleAidlInterface.asBinder().unlinkToDeath(deathRecipient,0);
+            iSimpleAidlInterface=null;
+            // TODO: 2019-06-03  重新绑定远程服务
+        }
+    };
     private ISimpleAidlInterface iSimpleAidlInterface;
     private ServiceConnection conn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             iSimpleAidlInterface = ISimpleAidlInterface.Stub.asInterface(iBinder);
+            try {
+                iBinder.linkToDeath(deathRecipient, 0);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -44,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 try {
+                    Log.d("MainActivity", "iSimpleAidlInterface.asBinder().isBinderAlive():" + iSimpleAidlInterface.asBinder().isBinderAlive());
                     int add = iSimpleAidlInterface.add(6, 3);
                     Log.d("MainActivity", "add:" + add);
                     int i = iSimpleAidlInterface.addAge(new StudentBean());
